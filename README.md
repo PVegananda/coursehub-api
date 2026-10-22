@@ -1,246 +1,158 @@
-![Django](https://img.shields.io/badge/Django-5.0-darkgreen?style=for-the-badge&logo=django)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker)
-![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)
+<div align="center">
+  <img src="https://cdn.simpleicons.org/django/0C4B33" alt="Django logo" width="96" />
+  <h1>CourseHub API</h1>
+  <p>A clean, type-safe learning platform API built with Django Ninja.</p>
 
-# Django Ninja - Simple LMS API
+  <p>
+    <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11"></a>
+    <a href="https://www.djangoproject.com/"><img src="https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django 5.1"></a>
+    <a href="https://django-ninja.dev/"><img src="https://img.shields.io/badge/Django%20Ninja-1.1-0C4B33?style=for-the-badge&logo=django&logoColor=white" alt="Django Ninja 1.1"></a>
+    <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 16"></a>
+    <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Compose"></a>
+  </p>
+</div>
 
-REST API untuk Simple Learning Management System menggunakan Django Ninja. Project ini adalah praktik modul 06 dari Pemrograman Sisi Server.
+## Overview
 
-## Apa ini?
+CourseHub API is a backend service for managing online courses and their content. It combines Django's mature web foundation with Django Ninja's typed schemas and automatic OpenAPI documentation to provide an API that is straightforward to consume and maintain.
 
-Ini project untuk belajar cara bikin REST API yang proper. Pake Django Ninja yang lebih modern dibanding DRF, dengan type hints dan otomatis documentation.
+The project includes authenticated course enrollment, role-aware CRUD operations, comments, search and price filtering, and a PostgreSQL-backed development environment.
 
-## Setup
+## Highlights
+
+- **Typed API contracts** with Pydantic schemas and Python type hints
+- **Interactive API documentation** through Swagger UI and OpenAPI
+- **JWT authentication** for registration, sign-in, token refresh, and protected resources
+- **Course management** with search, price filters, enrollment, and personal course lists
+- **Content and comment management** with ownership and role-based authorization
+- **PostgreSQL persistence** with Django migrations and seed data
+- **Containerized development** with Docker Compose
+- **Query optimization** using `select_related` and `prefetch_related`
+
+## Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- MacBook Air M2 (atau linux/windows dengan docker)
 
-### Jalanin Project
+- Docker Desktop with Docker Compose
+- Git
+
+### Run locally
 
 ```bash
-# Build docker image
-docker-compose build
+git clone https://github.com/PVegananda/django-ninja.git
+cd django-ninja
 
-# Start containers
-docker-compose up -d
-
-# Run migrations
-docker-compose exec app python manage.py migrate
-
-# Seed database (optional, tapi ada 100 courses ready)
-docker-compose exec app python manage.py seed_data
+docker compose build
+docker compose up -d
+docker compose exec app python manage.py migrate
+docker compose exec app python manage.py seed_data
 ```
 
-Server siap di `http://localhost:8000`
+The API is available at <http://localhost:8000>.
 
-## API Endpoints
+To stop the services:
 
-### Courses
-- `GET /api/v1/courses/` - List semua courses
-- `GET /api/v1/courses/?search=python` - Cari courses
-- `GET /api/v1/courses/?min_price=50000&max_price=100000` - Filter harga
-- `GET /api/v1/courses/{id}` - Detail course + contents
-- `POST /api/v1/courses/` - Buat course baru
-- `PUT /api/v1/courses/{id}` - Update course
-- `DELETE /api/v1/courses/{id}` - Hapus course
-
-### Contents
-- `GET /api/v1/contents/` - List contents
-- `GET /api/v1/contents/?course_id=1` - Filter by course
-- `GET /api/v1/contents/{id}` - Detail content
-- `POST /api/v1/contents/` - Buat content
-- `PUT /api/v1/contents/{id}` - Update content
-- `DELETE /api/v1/contents/{id}` - Hapus content
-
-### Documentation
-- `GET /api/v1/docs` - Swagger UI (best untuk testing)
-- `GET /api/v1/openapi.json` - OpenAPI schema
-
-### Test
-- `GET /api/v1/hello/` - Sanity check
-
-## Test Endpoints
-
-### Via curl
 ```bash
-# List courses
+docker compose down
+```
+
+To remove the local PostgreSQL volume as well:
+
+```bash
+docker compose down -v
+```
+
+> The default database credentials in `docker-compose.yml` are intended for local development only.
+
+## API Documentation
+
+Once the application is running, explore the API interactively:
+
+- **Swagger UI:** <http://localhost:8000/api/v1/docs>
+- **OpenAPI schema:** <http://localhost:8000/api/v1/openapi.json>
+- **Health check:** <http://localhost:8000/api/v1/hello/>
+
+### Main endpoints
+
+| Area | Routes | Access |
+| --- | --- | --- |
+| Authentication | `POST /api/v1/register/`, `/api/v1/auth/*` | Public |
+| Courses | `GET /api/v1/courses/`, `GET /api/v1/courses/{id}` | Public |
+| Course management | `POST`, `PUT`, `DELETE /api/v1/courses/` | JWT required |
+| Enrollment | `POST /api/v1/course/{id}/enroll/` | JWT required |
+| My courses | `GET /api/v1/mycourses/` | JWT required |
+| Content | `/api/v1/contents/` and `/api/v1/contents/{id}` | Read public; write protected |
+| Comments | `/api/v1/comments/` and `/api/v1/comments/{id}` | JWT required |
+
+Use the Swagger **Authorize** button with an access token to try protected endpoints.
+
+## Example Requests
+
+List courses:
+
+```bash
 curl http://localhost:8000/api/v1/courses/
+```
 
-# Search courses
-curl "http://localhost:8000/api/v1/courses/?search=Pemrograman"
+Search and filter courses:
 
-# Detail course
-curl http://localhost:8000/api/v1/courses/1
+```bash
+curl "http://localhost:8000/api/v1/courses/?search=python&min_price=50000&max_price=150000"
+```
 
-# Create course
+Create a course with an authenticated request:
+
+```bash
 curl -X POST http://localhost:8000/api/v1/courses/ \
   -H "Content-Type: application/json" \
-  -d '{"name":"My Course","description":"Cool stuff","price":99999}'
-
-# List contents
-curl http://localhost:8000/api/v1/contents/
-
-# Filter contents by course
-curl "http://localhost:8000/api/v1/contents/?course_id=1"
+  -H "Authorization: Bearer <access-token>" \
+  -d '{"name":"Practical Python","description":"Build useful Python applications.","price":99999}'
 ```
 
-### Via Swagger UI
-Buka browser ke `http://localhost:8000/api/v1/docs` dan test langsung dari sana. Jauh lebih enak.
+## Testing
+
+Run the Django test suite inside the application container:
+
+```bash
+docker compose exec app python manage.py test
+```
 
 ## Project Structure
 
-```
+```text
 code/
 ├── courses/
-│   ├── apiv1.py          # API endpoints definition
-│   ├── schemas.py        # Pydantic schemas (input/output validation)
-│   ├── models.py         # Django models (Course, Content, dll)
-│   ├── views.py          # Django views (from previous modules)
-│   ├── urls.py           # Course app URLs
-│   ├── admin.py          # Django admin
-│   ├── tests.py
+│   ├── apiv1.py          # API routes and authorization rules
+│   ├── schemas.py        # Request and response schemas
+│   ├── models.py         # Course, content, enrollment, and comment models
+│   ├── tests.py          # Application tests
+│   ├── management/       # Management commands, including seed_data
 │   └── migrations/       # Database migrations
 ├── lms/
-│   ├── urls.py           # Main URL config (API routes registered here)
-│   ├── settings.py       # Django settings
-│   ├── wsgi.py
-│   └── asgi.py
+│   ├── settings.py       # Django configuration
+│   ├── urls.py           # Project URL configuration
+│   ├── asgi.py
+│   └── wsgi.py
 ├── manage.py
 └── requirements.txt
-
-docker-compose.yml       # Docker configuration
-Dockerfile              # Python + PostgreSQL setup
+Dockerfile
+docker-compose.yml
 ```
 
-## Key Features
+## Technology Stack
 
-✅ **Type-Safe** - Python type hints everywhere  
-✅ **Auto Docs** - Swagger UI generated otomatis  
-✅ **Validation** - Pydantic schemas handle validation  
-✅ **CRUD Ready** - 10 endpoints siap pakai  
-✅ **Query Params** - Search, filter, sorting built-in  
-✅ **Error Handling** - Proper HTTP status codes  
-✅ **Optimized** - select_related & prefetch_related  
-✅ **Nested Data** - Relasi Course → Teacher, Course → Contents  
+- Python 3.11
+- Django 5.1
+- Django Ninja 1.1
+- PostgreSQL 16
+- Docker Compose
+- Pydantic schemas
+- JWT authentication
 
-## Database
+## Development Notes
 
-PostgreSQL running di container. Default credentials di `docker-compose.yml`:
-- User: `postgres`
-- Password: `postgres`
-- Database: `lms_db`
-- Port: `5436`
+This repository is configured for local development with `DEBUG=True`, a development PostgreSQL database, and sample course data. Before deploying to a hosted environment, replace the default credentials, configure secrets through environment variables, disable debug mode, and review the database and security settings.
 
-Sudah ada 100+ courses dengan teacher dan content data ready.
+## About
 
-## Modul 07: Authentication & Authorization
-
-### Fitur Baru (JWT Token-Based)
-- User registration dengan validasi duplikasi
-- Login & token generation (access + refresh token)
-- Token refresh tanpa login ulang
-- Protected endpoints dengan Bearer token
-- Role-Based Access Control (RBAC)
-- Authorization checks pada setiap endpoint
-
-### Auth Endpoints
-- `POST /api/v1/register/` - Daftar user baru
-- `POST /api/v1/auth/sign-in` - Login & dapat token
-- `POST /api/v1/auth/token-refresh` - Refresh access token
-
-### User Functions
-- `POST /api/v1/course/{id}/enroll/` - Daftar ke course (auth required)
-- `GET /api/v1/mycourses/` - List course yang diikuti (auth required)
-
-### Comment Management (dengan Authorization)
-- `POST /api/v1/comments/` - Buat komentar (hanya member)
-- `PUT /api/v1/comments/{id}` - Edit komentar (hanya owner)
-- `DELETE /api/v1/comments/{id}` - Hapus komentar (owner/teacher/admin)
-
-### Protected Endpoints
-- `POST /api/v1/courses/` - Buat course (auth + auto teacher)
-- `PUT /api/v1/courses/{id}` - Edit course (auth + owner only)
-- `DELETE /api/v1/courses/{id}` - Hapus course (owner/admin)
-- Content CRUD juga dilindungi (owner only)
-
-### Test di Swagger UI
-1. Register user: `POST /register/` → dapat user ID
-2. Login: `POST /auth/sign-in` → dapat tokens
-3. Klik "Authorize" di Swagger → masukkan access token
-4. Semua request otomatis include token
-
-## Commits
-
-Project ini dibuat step-by-step dengan jelas commit history:
-
-```
-aa7348d - 9: Setup script untuk migrations & seed data
-84207cc - 8.1-8.3: Proteksi Content CRUD (owner only)
-fad76ca - 7.1-7.3: Comment CRUD dengan full authorization
-487143f - 6.1-6.2: Course enrollment & mycourses endpoints
-a80ef43 - 5.1-5.3: Proteksi Course CRUD (auth + owner checks)
-6182f08 - 4.1-4.5: Register endpoint dengan validasi
-fa49f4a - 3.1-3.3: Schemas untuk auth & comments
-346cb4f - 2: Auth router & HttpJwtAuth
-115c488 - 1.1-1.2: Setup JWT (requirements + INSTALLED_APPS)
-```
-
-Plus Modul 06 commits untuk CRUD endpoints dasar.
-
-## Apa yang Dipelajari
-
-- Web Service vs Web Application
-- REST principles & HTTP methods
-- Pydantic schemas untuk validation
-- CRUD operations
-- Query parameters & filtering
-- Error handling
-- **JWT Token-based Authentication** (Modul 07)
-- **Authorization & Access Control** (Modul 07)
-- **RBAC - Role-Based Access Control** (Modul 07)
-- Auto-generated API documentation
-- Django Ninja basics
-
-## Next Steps
-
-- Modul 07: Authentication & Authorization (JWT tokens)
-- Modul 08: Advanced filtering & pagination
-- Modul 09: Rate limiting & caching
-- Deployment ke production
-
-## Troubleshooting
-
-### Container error?
-```bash
-docker-compose logs app
-```
-
-### Migrations failed?
-```bash
-docker-compose exec app python manage.py migrate --fake-initial
-```
-
-### Perlu seed data lagi?
-```bash
-docker-compose exec app python manage.py seed_data
-```
-
-### API tidak respond?
-```bash
-docker-compose restart app
-sleep 5
-curl http://localhost:8000/api/v1/hello/
-```
-
-## Notes
-
-- Teacher di-hardcode ke user pertama (di Modul 07 akan pakai authentication)
-- Ini project belajar, jadi tidak untuk production
-- Database di-reset setiap kali docker rebuild
-- Linux/Windows user harus adjust docker-compose.yml untuk volume paths
-
----
-
-**Made for learning. Reference from:** https://classroom.fahrifirdaus.my.id/book/pemrograman-sisi-server/chapter/06-rest-api-dasar/
+CourseHub API is a portfolio project demonstrating practical backend engineering with Django: designing typed REST endpoints, protecting resources with JWT authentication, modeling relationships, and documenting an API for a pleasant developer experience.
